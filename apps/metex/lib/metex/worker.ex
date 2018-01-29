@@ -13,6 +13,8 @@ defmodule Metex.Worker do
       |> url_for_location
       |> Enum.map(&HTTPoison.get(&1))
       |> Enum.map(&parse_info(&1))
+
+    info
   end
 
   @doc """
@@ -51,7 +53,8 @@ defmodule Metex.Worker do
   """
   def url_for_latitude(address) do
     p_address =
-      String.split(address)
+      address
+      |> String.split()
       |> Enum.join("+")
 
     "https://maps.googleapis.com/maps/api/geocode/json?address=#{p_address}&key=#{
@@ -64,7 +67,9 @@ defmodule Metex.Worker do
   """
   def get_location(address) when is_binary(address) do
     %{"results" => results} =
-      HTTPoison.get(url_for_latitude(address))
+      address
+      |> url_for_latitude
+      |> HTTPoison.get()
       |> parse_response
 
     Enum.map(results, fn location ->
@@ -103,6 +108,26 @@ defmodule Metex.Worker do
       %{"name" => name, "values" => values} = variable
       %{"value" => value} = List.first(values)
       %{name: name, value: value}
+    end)
+  end
+
+  def loop do
+    receive do
+      {pid, address} ->
+        send(pid, {:ok, get_info(address)})
+
+      # To prevent message flood.
+      _ ->
+        IO.puts("Unknown message.")
+    end
+
+    loop()
+  end
+
+  def process(address_list) do
+    Enum.map(address_list, fn address ->
+      pid = spawn(Metex.Worker, :loop, [])
+      send(pid, {self(), address})
     end)
   end
 
