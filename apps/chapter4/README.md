@@ -5,7 +5,7 @@
 En respuesta a `GenServer.start_link/3` o `start/3`.
 ### Valor devuelto
 * `{:ok, estado}`: Estado será el primer estado del proceso.
-* `{:ok, estado, tiempo_muerto}`:  Si en `tiempo_muerto` milisegundos no recibe ningún mensaje, se invocará a `handle_info(:timeout, estado)`
+* `{:ok, estado, tiempo_muerto}`:  Si en `tiempo_de_espera` milisegundos no recibe ningún mensaje, se invocará a `handle_info(:timeout, estado)`
 * `{:ok, estado, :hibernate}` el proceso entra en _hibernación_ antes de comenzar el bucle.
 * `:ignore`: Hará que `start_link/3` devuelve también `:ignore` y el proceso terminará normalmente (sin invocar a `terminate/2`).
 
